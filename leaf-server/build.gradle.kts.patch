@@ -1,5 +1,17 @@
 --- a/paper-server/build.gradle.kts
 +++ b/paper-server/build.gradle.kts
+@@ -2,7 +_,11 @@
+ import io.papermc.paperweight.attribute.DevBundleOutput
+ import io.papermc.paperweight.util.*
+ import io.papermc.paperweight.util.data.FileEntry
++import io.papermc.paperweight.tasks.CreatePaperclipJar
+ import paper.libs.com.google.gson.annotations.SerializedName
++import java.net.URI
++import java.nio.file.FileSystems
++import java.nio.file.Files
+ import java.time.Instant
+ import kotlin.io.path.readText
+ 
 @@ -15,10 +_,11 @@
  }
  
@@ -223,7 +235,7 @@
  idea {
      module {
          generatedSourceDirs.add(generatedDir.toFile())
-@@ -324,6 +_,8 @@
+@@ -324,6 +_,9 @@
      val memoryGb = providers.gradleProperty("paper.runMemoryGb").getOrElse("2")
      minHeapSize = "${memoryGb}G"
      maxHeapSize = "${memoryGb}G"
@@ -233,3 +245,23 @@
  
      doFirst {
          workingDir.mkdirs()
+@@ -386,3 +_,19 @@
+         }
+     }
+ }
++
++// Leaf start - leavesclip mixin bootstrap metadata
++tasks.named<CreatePaperclipJar>("createMojmapPaperclipJar") {
++    doLast {
++        val zipPath = outputZip.get().asFile.toPath()
++        val uri = URI.create("jar:" + zipPath.toUri())
++        FileSystems.newFileSystem(uri, mapOf<String, Any>()).use { fs ->
++            val metaInf = fs.getPath("/META-INF")
++            if (!Files.exists(metaInf)) {
++                Files.createDirectories(metaInf)
++            }
++            Files.writeString(metaInf.resolve("build-info"), "Leaf\t1.21.8\t0")
++        }
++    }
++}
++// Leaf end - leavesclip mixin bootstrap metadata
