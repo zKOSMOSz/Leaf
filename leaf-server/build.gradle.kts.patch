@@ -9,7 +9,7 @@
  dependencies {
      mache("io.papermc:mache:1.21.8+build.2")
 -    paperclip("io.papermc:paperclip:3.0.3")
-+    paperclip("cn.dreeam:quantumleaper:1.0.0-SNAPSHOT") // Leaf - project setup - Use own paperclip fork
++    paperclip("org.leavesmc:leavesclip:3.0.10") // Leaf - Mixin support via Leavesclip
      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
  }
  
@@ -229,85 +229,7 @@
      maxHeapSize = "${memoryGb}G"
 +    jvmArgs("--enable-preview") // Gale - enable preview features for development runs
 +    jvmArgs("--add-modules=jdk.incubator.vector") // Gale - Pufferfish - SIMD support
++    systemProperty("leavesclip.enable.mixin", true) // Leaf - enable mixins in dev runtime
  
      doFirst {
          workingDir.mkdirs()
-@@ -386,3 +_,78 @@
-         }
-     }
- }
-+
-+// Gale start - package license into jar
-+tasks.register<Copy>("copyLicense") {
-+    from(layout.projectDirectory.file("../paper-server/LICENSE.txt"))
-+    into(layout.buildDirectory.dir("tmp/copiedlicense"))
-+}
-+
-+tasks.processResources {
-+    dependsOn("copyLicense")
-+}
-+
-+sourceSets {
-+    main {
-+        resources {
-+            srcDir(layout.buildDirectory.dir("tmp/copiedlicense"))
-+        }
-+    }
-+}
-+// Gale end - package license into jar
-+
-+// Gale start - branding changes - package license into jar
-+// Based on io.papermc.paperweight.core.taskcontainers.PaperclipTasks
-+tasks.named("createMojmapPaperclipJar") {
-+    val name = rootProject.name
-+    val version = project.version
-+    val licenseFileName = "LICENSE.txt"
-+    val licenseFilePath = layout.projectDirectory.dir("../paper-server/$licenseFileName").asFile
-+
-+    // Based on io.papermc.paperweight.core.taskcontainers.PaperclipTasks
-+    val jarName = listOfNotNull(
-+        name,
-+        "paperclip",
-+        version,
-+        "mojmap"
-+    ).joinToString("-") + ".jar"
-+
-+    // Based on io.papermc.paperweight.core.taskcontainers.PaperclipTasks
-+    val zipFile = layout.buildDirectory.file("libs/$jarName").get().path
-+
-+    val rootDir = findOutputDir(zipFile)
-+
-+    doLast {
-+
-+        try {
-+            unzip(zipFile, rootDir)
-+
-+            licenseFilePath.copyTo(rootDir.resolve(licenseFileName).toFile())
-+
-+            ensureDeleted(zipFile)
-+
-+            zip(rootDir, zipFile)
-+        } finally {
-+            @OptIn(kotlin.io.path.ExperimentalPathApi::class)
-+            rootDir.toFile().deleteRecursively()
-+        }
-+
-+    }
-+}
-+// Gale end - branding changes - package license into jar
-+
-+// Leaf start - Leaf JUnit test suite
-+tasks.register<Test>("runLeafTests") {
-+    group = LifecycleBasePlugin.VERIFICATION_GROUP
-+    include("**/LeafTestSuite.class")
-+    workingDir = temporaryDir
-+    useJUnitPlatform {
-+        forkEvery = 1
-+    }
-+
-+    // Configure mockito agent that is needed in newer java versions
-+    val provider = objects.newInstance<MockitoAgentProvider>()
-+    provider.fileCollection.from(mockitoAgent)
-+    jvmArgumentProviders.add(provider)
-+}
-+// Leaf end - Leaf JUnit test suite
