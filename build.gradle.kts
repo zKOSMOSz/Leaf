@@ -20,9 +20,12 @@ subprojects {
     }
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven(paperMavenPublicUrl)
         maven(leafMavenPublicUrl)
+        maven("https://repo.leavesmc.org/snapshots/")
+        maven("https://jitpack.io")
     }
 
     tasks.withType<AbstractArchiveTask>().configureEach {
@@ -46,6 +49,15 @@ subprojects {
             showStackTraces = true
             exceptionFormat = TestExceptionFormat.FULL
             events(TestLogEvent.STANDARD_OUT)
+        }
+    }
+
+    if (project.name == "leaf-server") {
+        dependencies {
+            add("implementation", "org.spongepowered:configurate-gson:4.2.0-SNAPSHOT") {
+                exclude(group = "com.google.code.gson", module = "gson")
+                exclude(group = "com.google.guava", module = "guava")
+            }
         }
     }
 
