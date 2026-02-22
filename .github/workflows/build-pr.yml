@@ -3,17 +3,11 @@ name: Build
 on:
   workflow_dispatch:
   push:
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      GIT_COMMITTER_NAME: "github-actions[bot]"
-      GIT_COMMITTER_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
-      GIT_AUTHOR_NAME: "github-actions[bot]"
-      GIT_AUTHOR_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
-
     steps:
       - uses: actions/checkout@v6
 
@@ -23,8 +17,27 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - run: chmod +x gradlew
+      - name: Build and install Leavesclip to mavenLocal
+        run: |
+          git clone --depth 1 https://github.com/LeavesMC/Leavesclip /tmp/Leavesclip
+          (cd /tmp/Leavesclip && ./gradlew publishToMavenLocal -x test --no-daemon)
 
-      - run: ./gradlew applyAllPatches --stacktrace --no-daemon
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - run: ./gradlew createMojmapPaperclipJar --stacktrace --no-daemon
+      - name: Configure Git identity (required by paperweight patch apply)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Apply patches
+        run: ./gradlew applyAllPatches --stacktrace --no-daemon
+
+      - name: Build mojmap paperclip jar
+        run: ./gradlew :leaf-server:createMojmapPaperclipJar --stacktrace --no-daemon
+
+      - name: Upload Leaf jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: Leaf-1.21.8
+          path: leaf-server/build/libs/leaf-paperclip-1.21.8-R0.1-SNAPSHOT-mojmap.jar
