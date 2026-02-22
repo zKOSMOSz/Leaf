@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Codex <codex@example.com>
+Date: Sun, 22 Feb 2026 00:00:00 +0000
+Subject: [PATCH] Fix Java 21 pattern syntax in Ingredient
+
+
+diff --git a/net/minecraft/world/item/crafting/Ingredient.java b/net/minecraft/world/item/crafting/Ingredient.java
+--- a/net/minecraft/world/item/crafting/Ingredient.java
++++ b/net/minecraft/world/item/crafting/Ingredient.java
+@@ -101,9 +101,9 @@ public final class Ingredient implements StackedContents.IngredientInfo<io.paper
+     @Override
+     public boolean acceptsItem(final io.papermc.paper.inventory.recipe.ItemOrExact itemOrExact) {
+         return switch (itemOrExact) {
+-            case io.papermc.paper.inventory.recipe.ItemOrExact.Item(final Holder<Item> item) ->
++            case io.papermc.paper.inventory.recipe.ItemOrExact.Item(Holder<Item> item) ->
+                 !this.isExact() && this.values.contains(item);
+-            case io.papermc.paper.inventory.recipe.ItemOrExact.Exact(final ItemStack exact) ->
++            case io.papermc.paper.inventory.recipe.ItemOrExact.Exact(ItemStack exact) ->
+                 this.isExact() && this.itemStacks.contains(exact);
+         };
+         // Paper end - Improve exact choice recipe ingredients
