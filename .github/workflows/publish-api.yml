@@ -14,4 +14,8 @@ jobs:
           java-version: '21'
           cache: gradle
       - run: chmod +x gradlew
+      - name: Configure Git identity (required by paperweight patch apply)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - run: ./gradlew applyAllPatches :leaf-api:publishToMavenLocal --stacktrace --no-daemon
