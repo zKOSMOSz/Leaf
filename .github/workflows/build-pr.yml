@@ -1,45 +1,43 @@
-name: Build Pull Request
+name: Build
 
 on:
+  workflow_dispatch:
+  push:
   pull_request:
-    branches: [ "ver/1.21.8" ]
 
 jobs:
   build:
-    # Run workflow only on main repo
-    if: ${{ github.repository == 'Winds-Studio/Leaf' }}
-    runs-on: blacksmith-8vcpu-ubuntu-2204
-    env:
-      GRAALVM_ARGS: "-Dgraal.CompilerConfiguration=enterprise -Dgraal.UsePriorityInlining=true -Dgraal.Vectorization=true -Dgraal.OptDuplication=true --add-modules jdk.incubator.vector"
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Set up GraalVM JDK 21
-        uses: graalvm/setup-graalvm@v1
+      - uses: actions/setup-java@v5
         with:
-          java-version: 21
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          distribution: zulu
+          java-version: '21'
           cache: gradle
+
+      - name: Build and install Leavesclip to mavenLocal
+        run: |
+          git clone --depth 1 https://github.com/LeavesMC/Leavesclip /tmp/Leavesclip
+          (cd /tmp/Leavesclip && ./gradlew publishToMavenLocal -x test --no-daemon)
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Configure Git
+
+      - name: Configure Git identity (required by paperweight patch apply)
         run: |
-          git config --global user.email "no-reply@github.com"
-          git config --global user.name "Github Actions"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Apply patches
-        run: ./gradlew -Dorg.gradle.jvmargs="${{ env.GRAALVM_ARGS }}" applyAllPatches --stacktrace --no-daemon
-      - name: Create MojmapPaperclipJar
-        run: ./gradlew -Dorg.gradle.jvmargs="${{ env.GRAALVM_ARGS }}" createMojmapPaperclipJar --stacktrace --no-daemon
+        run: ./gradlew applyAllPatches --stacktrace --no-daemon
 
-      - name: Rename Paperclip JARs
-        run: |
-          mv leaf-server/build/libs/leaf-paperclip-1.21.8-R0.1-SNAPSHOT-mojmap.jar ./leaf-1.21.8.jar
-      - name: Upload Leaf as build artifact
-        uses: actions/upload-artifact@v6
+      - name: Build mojmap paperclip jar
+        run: ./gradlew :leaf-server:createMojmapPaperclipJar --stacktrace --no-daemon
+
+      - name: Upload Leaf jar
+        uses: actions/upload-artifact@v4
         with:
-          name: Leaf 1.21.8
-          path: ./leaf-1.21.8.jar
+          name: Leaf-1.21.8
+          path: leaf-server/build/libs/leaf-paperclip-1.21.8-R0.1-SNAPSHOT-mojmap.jar

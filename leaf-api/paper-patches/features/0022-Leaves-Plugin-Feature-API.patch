@@ -1,0 +1,45 @@
+From ac2e7e72ece1c538fdefefb2a02fb18828a7e6bc Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 22 Feb 2026 10:15:16 +0000
+Subject: [PATCH] Leaves Plugin feature API
+
+---
+ src/main/java/org/bukkit/Bukkit.java | 6 ++++++
+ src/main/java/org/bukkit/Server.java | 4 ++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index a1318ed9f..7ff1f0389 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -3083,6 +3083,12 @@ public final class Bukkit {
+         server.restart();
+     }
+ 
++    // Leaves start - Feature API
++    public static org.leavesmc.leaves.plugin.FeatureManager getFeatureManager() {
++        return server.getFeatureManager();
++    }
++    // Leaves end - Feature API
++
+     // Purpur start - Bring back server name
+     /**
+      * Get the name of this server
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 34923c762..9196239e4 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -2794,6 +2794,10 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+     void allowPausing(@NotNull org.bukkit.plugin.Plugin plugin, boolean value);
+     // Paper end - API to check if the server is sleeping
+ 
++    // Leaves start - Feature API
++    org.leavesmc.leaves.plugin.FeatureManager getFeatureManager();
++    // Leaves End - Feature API
++
+     // Purpur start - Bring back server name
+     /**
+      * Get the name of this server
+-- 
+2.43.0
+

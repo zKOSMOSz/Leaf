@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 22 Feb 2026 00:00:00 +0000
+Subject: [PATCH] Add build-info resource for leavesclip mixin bootstrap
+
+Leavesclip's BuildInfoInjector reads `/META-INF/build-info` from the server jar
+when `-Dleavesclip.enable.mixin=true` is used. Without this resource, startup
+fails with NPE before server bootstrap.
+
+diff --git a/src/main/resources/META-INF/build-info b/src/main/resources/META-INF/build-info
+new file mode 100644
+index 000000000..e17f4f6f9
+--- /dev/null
++++ b/src/main/resources/META-INF/build-info
+@@ -0,0 +1 @@
++Leaf	1.21.8	0
+
+-- 
+2.43.0
